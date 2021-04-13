@@ -160,15 +160,20 @@ static const struct bonded_channel_freq bonded_chan_160mhz_list_freq[] = {
 };
 #endif /*CONFIG_CHAN_FREQ_API*/
 
-static const enum phy_ch_width get_next_lower_bw[] = {
-	[CH_WIDTH_80P80MHZ] = CH_WIDTH_160MHZ,
-	[CH_WIDTH_160MHZ] = CH_WIDTH_80MHZ,
-	[CH_WIDTH_80MHZ] = CH_WIDTH_40MHZ,
-	[CH_WIDTH_40MHZ] = CH_WIDTH_20MHZ,
-	[CH_WIDTH_20MHZ] = CH_WIDTH_10MHZ,
-	[CH_WIDTH_10MHZ] = CH_WIDTH_5MHZ,
-	[CH_WIDTH_5MHZ] = CH_WIDTH_INVALID
-};
+enum phy_ch_width get_next_lower_bandwidth(enum phy_ch_width ch_width)
+{
+	static const enum phy_ch_width get_next_lower_bw[] = {
+		[CH_WIDTH_80P80MHZ] = CH_WIDTH_160MHZ,
+		[CH_WIDTH_160MHZ] = CH_WIDTH_80MHZ,
+		[CH_WIDTH_80MHZ] = CH_WIDTH_40MHZ,
+		[CH_WIDTH_40MHZ] = CH_WIDTH_20MHZ,
+		[CH_WIDTH_20MHZ] = CH_WIDTH_10MHZ,
+		[CH_WIDTH_10MHZ] = CH_WIDTH_5MHZ,
+		[CH_WIDTH_5MHZ] = CH_WIDTH_INVALID
+	};
+
+	return get_next_lower_bw[ch_width];
+}
 
 const struct chan_map channel_map_us[NUM_CHANNELS] = {
 	[CHAN_ENUM_2412] = {2412, 1, 20, 40},
@@ -1335,9 +1340,8 @@ enum channel_state reg_get_2g_bonded_channel_state(
  *
  * Return: Channel state
  */
-static enum channel_state reg_combine_channel_states(
-	enum channel_state chan_state1,
-	enum channel_state chan_state2)
+enum channel_state reg_combine_channel_states(enum channel_state chan_state1,
+					      enum channel_state chan_state2)
 {
 	if ((chan_state1 == CHANNEL_STATE_INVALID) ||
 	    (chan_state2 == CHANNEL_STATE_INVALID))
@@ -1425,7 +1429,8 @@ static void reg_set_5g_channel_params(struct wlan_objmgr_pdev *pdev,
 			break;
 		}
 update_bw:
-		ch_params->ch_width = get_next_lower_bw[ch_params->ch_width];
+		ch_params->ch_width =
+		    get_next_lower_bandwidth(ch_params->ch_width);
 	}
 
 	if (ch_params->ch_width == CH_WIDTH_160MHZ) {
@@ -1492,7 +1497,8 @@ static void reg_set_2g_channel_params(struct wlan_objmgr_pdev *pdev,
 			break;
 		}
 
-		ch_params->ch_width = get_next_lower_bw[ch_params->ch_width];
+		ch_params->ch_width =
+		    get_next_lower_bandwidth(ch_params->ch_width);
 	}
 	/* Overwrite center_freq_seg1 to 0 for 2.4 Ghz */
 	ch_params->center_freq_seg1 = 0;
@@ -3264,7 +3270,8 @@ static void reg_set_5g_channel_params_for_freq(struct wlan_objmgr_pdev *pdev,
 			break;
 		}
 update_bw:
-		ch_params->ch_width = get_next_lower_bw[ch_params->ch_width];
+		ch_params->ch_width =
+		    get_next_lower_bandwidth(ch_params->ch_width);
 	}
 
 	if (ch_params->ch_width == CH_WIDTH_160MHZ) {
@@ -3302,18 +3309,10 @@ update_bw:
 	}
 }
 
-/**
- * reg_set_2g_channel_params_for_freq() - set the 2.4G bonded channel parameters
- * @oper_freq: operating channel
- * @ch_params: channel parameters
- * @sec_ch_2g_freq: 2.4G secondary channel
- *
- * Return: void
- */
-static void reg_set_2g_channel_params_for_freq(struct wlan_objmgr_pdev *pdev,
-					       uint16_t oper_freq,
-					       struct ch_params *ch_params,
-					       uint16_t sec_ch_2g_freq)
+void reg_set_2g_channel_params_for_freq(struct wlan_objmgr_pdev *pdev,
+					uint16_t oper_freq,
+					struct ch_params *ch_params,
+					uint16_t sec_ch_2g_freq)
 {
 	enum channel_state chan_state = CHANNEL_STATE_ENABLE;
 
@@ -3366,7 +3365,7 @@ static void reg_set_2g_channel_params_for_freq(struct wlan_objmgr_pdev *pdev,
 			break;
 		}
 
-		ch_params->ch_width = get_next_lower_bw[ch_params->ch_width];
+		ch_params->ch_width = get_next_lower_bandwidth(ch_params->ch_width);
 	}
 	/* Overwrite mhz_freq_seg1 and center_freq_seg1 to 0 for 2.4 Ghz */
 	ch_params->mhz_freq_seg1 = 0;

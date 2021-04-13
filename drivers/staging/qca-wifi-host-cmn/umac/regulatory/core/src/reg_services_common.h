@@ -107,6 +107,14 @@ extern const struct chan_map channel_map_jp[];
 extern const struct chan_map channel_map_china[];
 extern const struct chan_map channel_map_global[];
 
+/**
+ * get_next_lower_bandwidth() - Get next lower bandwidth
+ * @ch_width: Channel width
+ *
+ * Return: Channel width
+ */
+enum phy_ch_width get_next_lower_bandwidth(enum phy_ch_width ch_width);
+
 #ifdef CONFIG_CHAN_NUM_API
 /**
  * reg_get_chan_enum() - Get channel enum for given channel number
@@ -1027,4 +1035,28 @@ reg_get_unii_5g_bitmap(struct wlan_objmgr_pdev *pdev, uint8_t *bitmap);
  */
 enum band_info reg_band_bitmap_to_band_info(uint32_t band_bitmap);
 #endif
+
+/**
+ * reg_set_2g_channel_params_for_freq() - set the 2.4G bonded channel parameters
+ * @oper_freq: operating channel
+ * @ch_params: channel parameters
+ * @sec_ch_2g_freq: 2.4G secondary channel
+ *
+ * Return: void
+ */
+void reg_set_2g_channel_params_for_freq(struct wlan_objmgr_pdev *pdev,
+                    uint16_t oper_freq,
+                    struct ch_params *ch_params,
+                    uint16_t sec_ch_2g_freq);
+
+/**
+ * reg_combine_channel_states() - Get minimum of channel state1 and state2
+ * @chan_state1: Channel state1
+ * @chan_state2: Channel state2
+ *
+ * Return: Channel state
+ */
+enum channel_state reg_combine_channel_states(enum channel_state chan_state1,
+                          enum channel_state chan_state2);
+
 #endif
