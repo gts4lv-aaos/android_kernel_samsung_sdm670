@@ -140,6 +140,7 @@
 		stm,irq_gpio = <&tlmm 123 0x2008>;
 		stm,irq_type = <8200>;
 		stm,max_coords = <1599 2559>;	/* x y */
+		stm,rotate-270;
 		stm,regulator_dvdd = "pm660_l11";
 		stm,regulator_avdd = "pm660l_l6";
 		stm,project_name = "GTS4Lv", "T725";
