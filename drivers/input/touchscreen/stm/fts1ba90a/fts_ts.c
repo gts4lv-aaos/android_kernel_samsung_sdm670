@@ -1571,6 +1571,7 @@ static void fts_print_info_work(struct work_struct *work)
 
 static u8 fts_event_handler_type_b(struct fts_ts_info *info)
 {
+	const struct fts_i2c_platform_data *pdata = info->board;
 	u8 regAdd;
 	int left_event_count = 0;
 	int EventNum = 0;
@@ -1741,8 +1742,14 @@ static u8 fts_event_handler_type_b(struct fts_ts_info *info)
 					input_report_key(info->input_dev, BTN_TOUCH, 1);
 					input_report_key(info->input_dev, BTN_TOOL_FINGER, 1);
 
-					input_report_abs(info->input_dev, ABS_MT_POSITION_X, info->finger[TouchID].x);
-					input_report_abs(info->input_dev, ABS_MT_POSITION_Y, info->finger[TouchID].y);
+					if (pdata->rotate_270) {
+						input_report_abs(info->input_dev, ABS_MT_POSITION_X, info->finger[TouchID].y);
+						input_report_abs(info->input_dev, ABS_MT_POSITION_Y,
+								 info->board->max_x - info->finger[TouchID].x);
+					} else {
+						input_report_abs(info->input_dev, ABS_MT_POSITION_X, info->finger[TouchID].x);
+						input_report_abs(info->input_dev, ABS_MT_POSITION_Y, info->finger[TouchID].y);
+					}
 					input_report_abs(info->input_dev, ABS_MT_TOUCH_MAJOR,
 								info->finger[TouchID].major);
 					input_report_abs(info->input_dev, ABS_MT_TOUCH_MINOR,
@@ -1801,8 +1808,14 @@ static u8 fts_event_handler_type_b(struct fts_ts_info *info)
 					input_report_key(info->input_dev, BTN_TOUCH, 1);
 					input_report_key(info->input_dev, BTN_TOOL_FINGER, 1);
 
-					input_report_abs(info->input_dev, ABS_MT_POSITION_X, info->finger[TouchID].x);
-					input_report_abs(info->input_dev, ABS_MT_POSITION_Y, info->finger[TouchID].y);
+					if (pdata->rotate_270) {
+						input_report_abs(info->input_dev, ABS_MT_POSITION_X, info->finger[TouchID].y);
+						input_report_abs(info->input_dev, ABS_MT_POSITION_Y,
+								 info->board->max_x - info->finger[TouchID].x);
+					} else {
+						input_report_abs(info->input_dev, ABS_MT_POSITION_X, info->finger[TouchID].x);
+						input_report_abs(info->input_dev, ABS_MT_POSITION_Y, info->finger[TouchID].y);
+					}
 					input_report_abs(info->input_dev, ABS_MT_TOUCH_MAJOR,
 								info->finger[TouchID].major);
 					input_report_abs(info->input_dev, ABS_MT_TOUCH_MINOR,
@@ -2210,6 +2223,8 @@ static int fts_parse_dt(struct i2c_client *client)
 	int connected;
 #endif
 
+	pdata->rotate_270 = of_property_read_bool(np, "stm,rotate-270");
+
 	pdata->tsp_icid = of_get_named_gpio(np, "stm,tsp-icid_gpio", 0);
 	if (gpio_is_valid(pdata->tsp_icid)) {
 		input_info(true, dev, "%s: TSP_ICID : %d\n", __func__, gpio_get_value(pdata->tsp_icid));
@@ -2531,6 +2546,7 @@ static int fts_setup_drv_data(struct i2c_client *client)
 
 static void fts_set_input_prop(struct fts_ts_info *info, struct input_dev *dev, u8 propbit)
 {
+	const struct fts_i2c_platform_data *pdata = info->board;
 	static char fts_ts_phys[64] = { 0 };
 
 	dev->dev.parent = &info->client->dev;
@@ -2566,10 +2582,18 @@ static void fts_set_input_prop(struct fts_ts_info *info, struct input_dev *dev, 
 		set_bit(KEY_SIDE_GESTURE_LEFT, dev->keybit);
 	}
 
-	input_set_abs_params(dev, ABS_MT_POSITION_X,
-			0, info->board->max_x, 0, 0);
-	input_set_abs_params(dev, ABS_MT_POSITION_Y,
-			0, info->board->max_y, 0, 0);
+	if (pdata->rotate_270) {
+		input_set_abs_params(dev, ABS_MT_POSITION_X,
+				0, info->board->max_y, 0, 0);
+		input_set_abs_params(dev, ABS_MT_POSITION_Y,
+				0, info->board->max_x, 0, 0);
+	} else {
+		input_set_abs_params(dev, ABS_MT_POSITION_X,
+				0, info->board->max_x, 0, 0);
+		input_set_abs_params(dev, ABS_MT_POSITION_Y,
+				0, info->board->max_y, 0, 0);
+	}
+
 #ifdef CONFIG_SEC_FACTORY
 	input_set_abs_params(dev, ABS_MT_PRESSURE, 0, 255, 0, 0);
 #else

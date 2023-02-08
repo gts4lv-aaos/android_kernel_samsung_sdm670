@@ -583,6 +583,8 @@ struct fts_i2c_platform_data {
 #ifdef CONFIG_INPUT_SEC_SECURE_TOUCH
 	int ss_touch_num;
 #endif
+
+	bool rotate_270;
 };
 
 struct fts_ts_info {
