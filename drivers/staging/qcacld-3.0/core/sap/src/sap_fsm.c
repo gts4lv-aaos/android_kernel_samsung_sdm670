@@ -3511,8 +3511,10 @@ static QDF_STATUS sap_get_freq_list(struct sap_context *sap_ctx,
 								     pdev) &&
 		    wlan_reg_is_etsi13_srd_chan_for_freq(
 					mac_ctx->pdev,
-					WLAN_REG_CH_TO_FREQ(loop_count)))
+					WLAN_REG_CH_TO_FREQ(loop_count))) {
+			freq_present_in_list = false;
 			continue;
+		}
 
 		/* Check if the freq is present in range list */
 		for (i = 0; i < mac_ctx->mlme_cfg->acs.num_weight_range; i++) {
